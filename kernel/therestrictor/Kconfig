@@ -1,0 +1,8 @@
+config SECURITY_THEREST
+	bool "The RESTRICTOR Linux Security Module"
+	depends on SECURITY
+	default y
+	help
+	  This is a Security Module designed to offer security features
+	  that make the live of intruders harder, or even, to make instrusions
+	  impossible.

@@ -1,0 +1,28 @@
+--- bak.Kconfig	2017-11-16 10:20:16.372329419 +0100
++++ Kconfig	2017-11-16 11:12:15.400329047 +0100
+@@ -211,6 +211,7 @@
+ source security/apparmor/Kconfig
+ source security/loadpin/Kconfig
+ source security/yama/Kconfig
++source security/therestrictor/Kconfig
+ 
+ source security/integrity/Kconfig
+ 
+@@ -238,6 +239,9 @@
+ 	config DEFAULT_SECURITY_APPARMOR
+ 		bool "AppArmor" if SECURITY_APPARMOR=y
+ 
++	config DEFAULT_SECURITY_THEREST
++		bool "The RESTRICTOR" if SECURITY_THEREST=y
++
+ 	config DEFAULT_SECURITY_DAC
+ 		bool "Unix Discretionary Access Controls"
+ 
+@@ -249,6 +253,7 @@
+ 	default "smack" if DEFAULT_SECURITY_SMACK
+ 	default "tomoyo" if DEFAULT_SECURITY_TOMOYO
+ 	default "apparmor" if DEFAULT_SECURITY_APPARMOR
++	default "therest" if DEFAULT_SECURITY_THEREST
+ 	default "" if DEFAULT_SECURITY_DAC
+ 
+ endmenu
