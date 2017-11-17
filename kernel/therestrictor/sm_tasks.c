@@ -19,6 +19,7 @@
 #include "structs.h"
 #include "prctl_numbers.h"
 #include "macros.h"
+#include "pledge.h"
 
 int therest_cred_alloc_blank(struct cred *cred, gfp_t gfp) {
 	THEREST_credx_t *t;
@@ -45,8 +46,9 @@ int therest_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 	pledge = (u32)arg2;
 	
 	switch(option){
-		caseof(PR_TR_PLEDGE    , t->pledge |= ~pledge );
-		caseof(PR_TR_PLEDGE_NOT, t->pledge |=  pledge );
+		caseof(PRX_TR_PLEDGE    , t->pledge |= ~pledge );
+		caseof(PRX_TR_PLEDGE_NOT, t->pledge |=  pledge );
+		caseof(PRX_TR_ABORT     , return E_ABORT       );
 	}
 	return -ENOSYS;
 }

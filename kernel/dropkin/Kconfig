@@ -1,0 +1,16 @@
+config SECURITY_DROPKIN
+	bool "Dropkin Security Module"
+	depends on SECURITY
+	default n
+	help
+	  This selects the Dropkin Security Module.
+	  Dropkin allows processes to securely drop priviliges in a
+	  way, that does not allow an attacker to recover them.
+
+config SECURITY_DROPKIN_DEVEL
+	bool "Dropkin's Weird debug mode. Kernel panic!!!"
+	depends on SECURITY
+	default n
+	help
+	  Seriously, you MUST NOT enable that! It causes kernel panics!!!
+
