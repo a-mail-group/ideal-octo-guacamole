@@ -16,6 +16,7 @@
 #include <linux/sched.h>
 #include <linux/cred.h>
 #include <linux/socket.h>
+#include <linux/net.h>
 
 #include "entry_points.h"
 #include "structs.h"
@@ -24,25 +25,36 @@
 #include "pledge.h"
 #include "mls.h"
 
-#define UNSUPPORTED { passnocred(current->cred,0); passpledge(PLEDGE_UNSUPPORTED, E_ABORT); return 0; }
 #define IGNORE { return 0; }
 
-int dropkin_unix_stream_connect(struct sock *sock, struct sock *other, struct sock *newsk) UNSUPPORTED
-int dropkin_unix_may_send(struct socket *sock, struct socket *other) UNSUPPORTED
+int dropkin_unix_stream_connect(struct sock *sock, struct sock *other, struct sock *newsk) {
+	passnocred(current->cred,0);
+	passpledge(PLEDGE_UNIX, E_ABORT);
+	return 0;
+}
+int dropkin_unix_may_send(struct socket *sock, struct socket *other) {
+	passnocred(current->cred,0);
+	passpledge(PLEDGE_UNIX, E_ABORT);
+	return 0;
+}
 
 int dropkin_socket_create(int family, int type, int protocol, int kern) {
 	passnocred(current->cred,0);
 	
-	switch(type){
+	switch(family){
 	case AF_INET6:
-	caseof(AF_INET, passpledge(PLEDGE_INET, E_ABORT));
+	caseof(AF_INET,
+		switch(type){
+		caseof(SOCK_DGRAM, passpledge(PLEDGE_INET|PLEDGE_UDPDNS, E_ABORT));
+		default: passpledge(PLEDGE_INET, E_ABORT);
+		});
 	caseof(AF_UNIX, passpledge(PLEDGE_UNIX, E_ABORT));
 	default: passpledge(PLEDGE_UNSUPPORTED, E_ABORT);
 	}
 	return 0;
 }
 
-#define PLEDGE_SOCKETS (PLEDGE_INET|PLEDGE_UNIX)
+#define PLEDGE_SOCKETS (PLEDGE_INET|PLEDGE_UNIX|PLEDGE_UDPDNS)
 
 int dropkin_socket_post_create(struct socket *sock, int family, int type, int protocol, int kern) IGNORE
 

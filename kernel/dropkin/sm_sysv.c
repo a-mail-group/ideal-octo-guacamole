@@ -24,9 +24,6 @@
 #include "pledge.h"
 #include "mls.h"
 
-#define REQ_CPATH { passnocred(current->cred,0); passpledge(PLEDGE_CPATH, E_ABORT); return 0; }
-//#define UNSUPPORTED { passnocred(current->cred,0); passpledge(PLEDGE_UNSUPPORTED, E_ABORT); return 0; }
-
 int  dropkin_shm_alloc_security(struct shmid_kernel *shp){
 	DROPKIN_sysv_t *t;
 	
