@@ -28,6 +28,11 @@ int dropkin_check_pledge(u32 pledge) {
 
 int dropkin_abort(void) {
 	struct siginfo info;
+	pr_warn("PLEDGE-VIOLATION: Process (pid=%d; uid=%d; gid=%d) killed!",
+		(int)(current->pid),
+		(int)(current->cred->uid.val),
+		(int)(current->cred->gid.val)
+	);
 	info.si_signo = SIGABRT;
 	info.si_errno = 0;
 	info.si_code = SI_KERNEL;
