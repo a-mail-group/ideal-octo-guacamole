@@ -1,4 +1,3 @@
-#pragma once
 /*
  *  Copyright (C) 2017 Simon Schmidt
  *
@@ -10,13 +9,18 @@
  *	Free Software Foundation.
  *
 **/
+#include <linux/sched.h>
+#include <linux/signal.h>
+#include <linux/cred.h>
+#include "structs.h"
+#include "secureflags.h"
+#include "macros.h"
 
-// Hopefully unused PRCTL commands.
-#define PRX_TR_BASE        1000
-#define PRX_TR_PLEDGE      1001
-#define PRX_TR_PLEDGE_NOT  1002
-#define PRX_TR_ABORT       1003
-#define PRX_TR_MLS_RING    1004
-#define PRX_TR_ISO_ID      1005
-#define PRX_TR_SET_SECFLAG 1006
+bool dropkin_check_secureflags(u32 flags) {
+	DROPKIN_credx_t *t;
+	
+	t = current->cred->security;
+	
+	return bcast(t->secure_flags&flags);
+}
 

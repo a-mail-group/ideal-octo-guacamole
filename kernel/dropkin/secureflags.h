@@ -10,7 +10,11 @@
  *	Free Software Foundation.
  *
 **/
+#include <linux/types.h>
 
-// XXX: Preliminary
-#define SECF_MAC_SEALED 0x00000001
+bool dropkin_check_secureflags(u32 flags);
+
+#define passsecflags(flags,x) if(dropkin_check_secureflags(flags)) return x
+
+#define SECF_NO_ROOT 0x00000001
 

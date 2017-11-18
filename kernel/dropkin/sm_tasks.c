@@ -22,6 +22,7 @@
 #include "macros.h"
 #include "pledge.h"
 #include "mls.h"
+#include "secureflags.h"
 
 int dropkin_cred_alloc_blank(struct cred *cred, gfp_t gfp) {
 	DROPKIN_credx_t *t;
@@ -128,25 +129,36 @@ int  dropkin_task_fix_setuid(struct cred *new, const struct cred *old,int flags)
 	t  = new->security;
 	ot = old->security;
 	*t=*ot;
+	
+	if(t->secure_flags&SECF_NO_ROOT) return E_ABORT;
+	
 	return 0;
 }
 
 
 int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5) {
 	DROPKIN_credx_t *t;
-	u32 pledge;
+	u32 pcarg;
 	//if(!(current->cred->security)) pr_info("DAMN! - no Object!");
 	passnocred(current->cred, -ENOSYS);
 	//if(!(current->cred->security)) return -ENOSYS;
 	
 	t = current->cred->security;
 	
-	pledge = (u32)arg2;
+	pcarg = (u32)arg2;
 	
 	switch(option){
-		caseof(PRX_TR_PLEDGE    , t->pledge |= ~pledge );
-		caseof(PRX_TR_PLEDGE_NOT, t->pledge |=  pledge );
-		caseof(PRX_TR_ABORT     , return E_ABORT       );
+		caseof(PRX_TR_PLEDGE     , t->pledge |= ~pcarg );
+		caseof(PRX_TR_PLEDGE_NOT , t->pledge |=  pcarg );
+		caseof(PRX_TR_ABORT      , return E_ABORT       );
+		caseof(PRX_TR_MLS_RING   ,
+			if(t->subject.prot_ring>pcarg) return -EACCES;
+			t->subject.prot_ring=pcarg );
+		caseof(PRX_TR_ISO_ID     ,
+			if(t->subject.iso_id) return -EACCES;
+			t->subject.iso_id=pcarg );
+		caseof(PRX_TR_SET_SECFLAG, t->secure_flags |= pcarg );
+		
 	}
 	return -ENOSYS;
 }
