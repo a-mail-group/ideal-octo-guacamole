@@ -26,24 +26,20 @@ int dropkin_check_mls(DROPKIN_subject_t *subject,DROPKIN_subject_t *object){
 	return 0;
 }
 
-int dropkin_check_mlsf(DROPKIN_subject_t *subject, DROPKIN_inode_t *object, bool read,bool write) {
+// XXX: Considered Legacy.
+bool dropkin_check_mlsf(DROPKIN_subject_t *subject, DROPKIN_inode_t *object, bool read,bool write) {
 	/*
 	 * Check, if we are violating the Multi-Level security constraints.
 	 * Bigger number == Lower privilege. (Inspired by ring 0.)
 	 */
-	if( (subject->prot_ring) > (object->general_pr) ) return -1;
 	
 	/* Check the read security level. */
-	if( read && (subject->prot_ring) > (object->read_pr) ) return -1;
+	if( read && (subject->prot_ring) > (object->mls.read_pr) ) return true;
 	
 	/* Check the write security level. */
-	if( write && (subject->prot_ring) > (object->write_pr) ) return -1;
+	if( write && (subject->prot_ring) > (object->mls.write_pr) ) return true;
 	
-	/*
-	 * Check, if we are violating the Isolation constraints.
-	 */
-	if( ((subject->iso_id) != 0u) && (subject->iso_id) != (object->iso_id) ) return -1;
 	
-	return 0;
+	return false;
 }
 

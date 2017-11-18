@@ -15,22 +15,37 @@
 #include "filepac.h"
 #include "mls.h"
 #include "macros.h"
+//#include "secureflags.h"
 
 /*
  * Return value:
  *    False: Access granted.
  *    True:  Access denied.
  */
-bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *object, int mask) {
+bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) {
+	/*
+	 * If the target file is a process, check access it.
+	 */
+	if(ino->is_process) passmls(pt->subject,ino->process,true);
 	
-	// TODO: The policy is idiotic right now, refine it.
-	passmlsf(pt->subject,object,bcast(mask&MAY_WRITE),bcast(mask&(MAY_READ|MAY_EXEC)),true);
+	
+	/*
+	 * Check the write security level.
+	 */
+	if( (mask&MAY_WRITE) && (pt->subject.prot_ring) > (ino->mls.write_pr) ) return true;
+	
+	/*
+	 * Check the read security level, if this one was offered.
+	 */
+	if(ino->is_mls_read && (mask&(MAY_READ|MAY_EXEC))
+		&& (pt->subject.prot_ring) > (ino->mls.read_pr) ) return true;
 	
 	return false;
 }
 
-
-void dropkin_repr_as_file(DROPKIN_credx_t *pt, DROPKIN_inode_t *ins){
-	ins->general_pr = ins->read_pr = ins->write_pr = pt->subject.prot_ring;
-	ins->iso_id = pt->subject.iso_id;
+void dropkin_repr_as_file(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino) {
+	
+	ino->process = pt->subject;
+	
+	ino->is_process = true;
 }

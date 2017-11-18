@@ -11,13 +11,6 @@
  *
 **/
 
+// XXX: Preliminary
+#define SECF_MAC_SEALED 0x00000001
 
-#include "structs.h"
-
-int dropkin_check_mls(DROPKIN_subject_t *subject,DROPKIN_subject_t *object);
-
-#define passmls(sub,obj,x) if(dropkin_check_mls(&(sub),&(obj))) return x
-
-bool dropkin_check_mlsf(DROPKIN_subject_t *subject, DROPKIN_inode_t *object, bool read,bool write);
-
-#define passmlsf(sub,ino,read,write,x) if(dropkin_check_mlsf(&(sub),ino,read,write)) return x

@@ -28,6 +28,7 @@ typedef struct DROPKIN_subject_s {
 typedef struct DROPKIN_credx_s {
 	u32 pledge;
 	DROPKIN_subject_t subject;
+	u32 secure_flags;
 } DROPKIN_credx_t;
 
 typedef struct DROPKIN_sysv_s {
@@ -37,14 +38,16 @@ typedef struct DROPKIN_sysv_s {
 
 typedef struct DROPKIN_inode_s {
 	/*
-	 * Protection rings.
+	 * This field is used, if the inode represents a Process.
 	 */
-	u32 general_pr;
-	u32 read_pr;
-	u32 write_pr;
-	/*
-	 * Isolation ID.
-	 */
-	u32 iso_id;
+	DROPKIN_subject_t process;
+	
+	struct {
+		u32 read_pr;
+		u32 write_pr;
+	} mls;
+	/* Insert new fields here*/
+	bool is_process;
+	bool is_mls_read;
 } DROPKIN_inode_t;
 
