@@ -53,6 +53,10 @@ int  dropkin_inode_setattr(struct dentry *dentry, struct iattr *attr);
 int  dropkin_inode_getattr(const struct path *path);
 void dropkin_task_to_inode(struct task_struct *p, struct inode *inode);
 
+int dropkin_inode_getsecurity(struct inode *inode, const char *name, void **buffer, bool alloc);
+int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
+int dropkin_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
+
 // SM_SYSV
 
 

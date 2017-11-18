@@ -63,7 +63,7 @@ int dropkin_task_kill(struct task_struct *p, struct siginfo *info, int sig, u32 
 	t = current->cred->security;
 	ot = p->cred->security;
 	
-	passmls(t->subject,ot->subject, -EPERM);
+	passmls(t->subject,ot->subject, -EACCES);
 	
 	return 0;
 }

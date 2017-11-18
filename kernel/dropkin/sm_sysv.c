@@ -64,7 +64,7 @@ int  dropkin_shm_shmctl(struct shmid_kernel *shp, int cmd){
 	t = shp->shm_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -79,7 +79,7 @@ int  dropkin_shm_shmat(struct shmid_kernel *shp, char __user *shmaddr,int shmflg
 	t = shp->shm_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -120,7 +120,7 @@ int  dropkin_sem_semctl(struct sem_array *sma, int cmd) {
 	t = sma->sem_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -135,7 +135,7 @@ int  dropkin_sem_semop(struct sem_array *sma, struct sembuf *sops, unsigned nsop
 	t = sma->sem_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -176,7 +176,7 @@ int  dropkin_msg_queue_msgctl(struct msg_queue *msq, int cmd) {
 	t = msq->q_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -191,7 +191,7 @@ int  dropkin_msg_queue_msgsnd(struct msg_queue *msq, struct msg_msg *msg, int ms
 	t = msq->q_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }
@@ -206,7 +206,7 @@ int  dropkin_msg_queue_msgrcv(struct msg_queue *msq, struct msg_msg *msg, struct
 	t = msq->q_perm.security;
 	pt = current->cred->security;
 	
-	passmls(pt->subject,t->subject, -EPERM);
+	passmls(pt->subject,t->subject, -EACCES);
 	
 	return 0;
 }

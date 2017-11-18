@@ -25,21 +25,3 @@ int dropkin_check_mls(DROPKIN_subject_t *subject,DROPKIN_subject_t *object){
 	
 	return 0;
 }
-
-// XXX: Considered Legacy.
-bool dropkin_check_mlsf(DROPKIN_subject_t *subject, DROPKIN_inode_t *object, bool read,bool write) {
-	/*
-	 * Check, if we are violating the Multi-Level security constraints.
-	 * Bigger number == Lower privilege. (Inspired by ring 0.)
-	 */
-	
-	/* Check the read security level. */
-	if( read && (subject->prot_ring) > (object->mls.read_pr) ) return true;
-	
-	/* Check the write security level. */
-	if( write && (subject->prot_ring) > (object->mls.write_pr) ) return true;
-	
-	
-	return false;
-}
-

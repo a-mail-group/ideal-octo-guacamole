@@ -46,6 +46,10 @@ static struct security_hook_list dropkin_hooks[] __lsm_ro_after_init = {
 	LSM_HOOK_INIT(inode_getattr     , dropkin_inode_getattr     ),
 	LSM_HOOK_INIT(task_to_inode     , dropkin_task_to_inode     ),
 	
+	LSM_HOOK_INIT(inode_getsecurity , dropkin_inode_getsecurity ),
+	LSM_HOOK_INIT(inode_setsecurity , dropkin_inode_setsecurity ),
+	LSM_HOOK_INIT(inode_listsecurity, dropkin_inode_listsecurity),
+	
 	/* SM_SYSV */
 	LSM_HOOK_INIT(shm_alloc_security, dropkin_shm_alloc_security),
 	LSM_HOOK_INIT(shm_free_security , dropkin_shm_free_security ),

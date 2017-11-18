@@ -10,11 +10,11 @@
  *	Free Software Foundation.
  *
 **/
+#include <linux/xattr.h>
 
+#define FXASUF_DROPKIN "DROPKIN"
 
-#include "structs.h"
-
-int dropkin_check_mls(DROPKIN_subject_t *subject,DROPKIN_subject_t *object);
-
-#define passmls(sub,obj,x) if(dropkin_check_mls(&(sub),&(obj))) return x
+#define FXA_PREFIX        XATTR_SECURITY_PREFIX FXASUF_DROPKIN
+#define FXA_MLS_READ      FXA_PREFIX "_RPR"
+#define FXA_MLS_WRITE     FXA_PREFIX "_WPR"
 

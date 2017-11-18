@@ -38,6 +38,6 @@ int dropkin_abort(void) {
 	info.si_code = SI_KERNEL;
 
 	do_send_sig_info(SIGABRT, &info, current, true);
-	return -EPERM;
+	return -EACCES;
 }
 

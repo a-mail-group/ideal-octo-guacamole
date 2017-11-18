@@ -10,11 +10,11 @@
  *	Free Software Foundation.
  *
 **/
+#include <linux/types.h>
 
+u32 dropkin_parse_securly(const void *value, size_t size);
 
-#include "structs.h"
+void *dropkin_serialize_securely(u32 data, size_t *size);
 
-int dropkin_check_mls(DROPKIN_subject_t *subject,DROPKIN_subject_t *object);
-
-#define passmls(sub,obj,x) if(dropkin_check_mls(&(sub),&(obj))) return x
+size_t dropkin_decimal_length(u32 data);
 
