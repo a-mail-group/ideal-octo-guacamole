@@ -23,7 +23,8 @@
 #include "prctl_numbers.h"
 #include "macros.h"
 #include "pledge.h"
-#include "mls.h"
+//#include "mls.h"
+#include "secureflags.h"
 
 #define IGNORE { return 0; }
 
@@ -50,6 +51,10 @@ int dropkin_socket_create(int family, int type, int protocol, int kern) {
 		});
 	caseof(AF_UNIX, passpledge(PLEDGE_UNIX, E_ABORT));
 	default: passpledge(PLEDGE_UNSUPPORTED, E_ABORT);
+	}
+	
+	switch(family){
+	caseof(AF_NETLINK, passsecflags(SECF_NO_CHANGENET,-EACCES) );
 	}
 	return 0;
 }

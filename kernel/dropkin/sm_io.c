@@ -28,6 +28,7 @@
 #include "filepac.h"
 #include "parsenum.h"
 #include "util_mem.h"
+#include "secureflags.h"
 
 #define REQ_CPATH { passnocred(current->cred,0); passpledge(PLEDGE_CPATH, E_ABORT); return 0; }
 
@@ -47,6 +48,7 @@ void dropkin_inode_free_security(struct inode *inode){
 int dropkin_inode_permission(struct inode *inode, int mask) {
 	DROPKIN_inode_t isec;
 	DROPKIN_credx_t *pt;
+	u32 secf;
 	passnocred(current->cred,0);
 	
 	if(mask&(MAY_READ|MAY_EXEC)) passpledge(PLEDGE_RPATH|PLEDGE_WPATH, E_ABORT);
@@ -55,7 +57,19 @@ int dropkin_inode_permission(struct inode *inode, int mask) {
 	pt = current->cred->security;
 	
 	if(dropkin_inode_get_inode(inode, &isec)) passfilepac(pt,&isec,mask,-EACCES);
-	//	passmlsf(pt->subject,&isec,bcast(mask&MAY_WRITE),bcast(mask&(MAY_READ|MAY_EXEC)),-EACCES);
+	
+	secf = 0;
+	
+	if(mask&(MAY_READ|MAY_EXEC)) secf |= (SECF_NO_BLK_READ |SECF_NO_CHR_READ );
+	if(mask&MAY_WRITE)           secf |= (SECF_NO_BLK_WRITE|SECF_NO_CHR_WRITE);
+	
+#define SECF_NO_BLK (SECF_NO_BLK_READ|SECF_NO_BLK_WRITE)
+#define SECF_NO_CHR (SECF_NO_CHR_READ|SECF_NO_CHR_WRITE)
+	
+	switch(((inode->i_mode)>>12)&15) {
+	caseof(DT_BLK, passsecflags(secf&SECF_NO_BLK,-EACCES) );
+	caseof(DT_CHR, passsecflags(secf&SECF_NO_CHR,-EACCES) );
+	}
 	
 	return 0;
 }
