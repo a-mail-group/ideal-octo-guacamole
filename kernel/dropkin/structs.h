@@ -25,10 +25,30 @@ typedef struct DROPKIN_subject_s {
 	u32 iso_id;
 } DROPKIN_subject_t;
 
+typedef struct DROPKIN_cap_s {
+	u32 res_type_id;
+	u8  access_rights;
+} DROPKIN_cap_t;
+
+typedef u32 DROPKIN_CAP;
+#define cap2rti(x) (DROPKIN_CAP)((x)>>8)
+#define rti2cap(x) (DROPKIN_CAP)((x)<<8)
+#define cap2rights(x) (DROPKIN_CAP)((x)&0xff)
+#define rights2cap(x) (DROPKIN_CAP)((x)&0xff)
+
+
+#define MAX_RES_TYPE_CAPS 28 /* 32-4 = 28 */
+
 typedef struct DROPKIN_credx_s {
 	u32 pledge;
 	DROPKIN_subject_t subject;
 	u32 secure_flags;
+	/*
+	 * Resource-Type-Capabilities.
+	 *
+	 * This is needed to implement Capability Based Access Control.
+	 */
+	DROPKIN_CAP res_type_caps[MAX_RES_TYPE_CAPS];
 } DROPKIN_credx_t;
 
 typedef struct DROPKIN_sysv_s {
@@ -46,7 +66,17 @@ typedef struct DROPKIN_inode_s {
 		u32 read_pr;
 		u32 write_pr;
 	} mls;
-	/* Insert new fields here*/
+	/*
+	 * Resource-Type-Id
+	 *
+	 * If this one is set to ZERO (default), The file does not have an Type-Id.
+	 *
+	 * This value is encoded as a DROPKIN_CAP. It must be set with rti2cap( type-num ) .
+	 *
+	 * The rights vector, cap2rights( res_type_id ) will be ignored, and should be ZERO.
+	 */
+	DROPKIN_CAP res_type_id;
+	/* Insert new fields here... */
 	bool is_process;
 	bool is_mls_read;
 } DROPKIN_inode_t;

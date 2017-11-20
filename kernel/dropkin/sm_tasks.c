@@ -135,10 +135,28 @@ int  dropkin_task_fix_setuid(struct cred *new, const struct cred *old,int flags)
 	return 0;
 }
 
+static int dropkin_find_or_create_cap(DROPKIN_credx_t *pt,u32 rti)
+{
+	int i;
+	for(i=0;i<MAX_RES_TYPE_CAPS;++i){
+		if(rti!=cap2rti(pt->res_type_caps[i])) continue; /* Skip entries != rti. */
+		return i;
+	}
+	for(i=0;i<MAX_RES_TYPE_CAPS;++i){
+		if( cap2rti(pt->res_type_caps[i]) ) continue; /* Skip entries, that are Non-ZERO. */
+		/* Create Capability Entry. */
+		pt->res_type_caps[i] = rti2cap(rti);
+		return i;
+	}
+	return -1;
+}
+
+
 
 int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5) {
 	DROPKIN_credx_t *t;
-	u32 pcarg;
+	u32 pcarg, perms;
+	int i;
 	//if(!(current->cred->security)) pr_info("DAMN! - no Object!");
 	passnocred(current->cred, -ENOSYS);
 	//if(!(current->cred->security)) return -ENOSYS;
@@ -146,6 +164,7 @@ int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 	t = current->cred->security;
 	
 	pcarg = (u32)arg2;
+	perms = (u32)arg3;
 	
 	switch(option){
 		caseof(PRX_TR_PLEDGE     , t->pledge |= ~pcarg );
@@ -158,7 +177,12 @@ int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 			if(t->subject.iso_id) return -EACCES;
 			t->subject.iso_id=pcarg );
 		caseof(PRX_TR_SET_SECFLAG, t->secure_flags |= pcarg );
-		
+		case   PRX_TR_SET_CAP:
+			if(t->secure_flags&&SECF_NO_NEEDCAPS) return -EACCES;
+			i = dropkin_find_or_create_cap(t,pcarg);
+			if(i<0) return -ENOMEM; /* No more space. */
+			t->res_type_caps[i] |= rights2cap(perms);
+		break;
 	}
 	return -ENOSYS;
 }

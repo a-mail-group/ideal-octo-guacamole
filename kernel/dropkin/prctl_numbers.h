@@ -19,4 +19,5 @@
 #define PRX_TR_MLS_RING    1004
 #define PRX_TR_ISO_ID      1005
 #define PRX_TR_SET_SECFLAG 1006
+#define PRX_TR_SET_CAP     1007
 

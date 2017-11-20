@@ -23,4 +23,5 @@ bool dropkin_check_secureflags(u32 flags);
 #define SECF_NO_CHR_READ  0x00000010
 #define SECF_NO_CHR_WRITE 0x00000020
 #define SECF_NO_CHANGENET 0x00000040
+#define SECF_NO_NEEDCAPS  0x00000080
 
