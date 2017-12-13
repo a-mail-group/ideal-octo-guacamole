@@ -14,6 +14,10 @@
 **/
 #include "structs.h"
 
+#define xMAY_DELETE 0x00010000
+#define xMAY_RENAME 0x00020000
+#define xMAY_LINK   0x00040000
+
 /*
  * Return value:
  *    False: Access granted.

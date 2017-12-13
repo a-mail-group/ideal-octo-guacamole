@@ -32,6 +32,10 @@ static struct security_hook_list dropkin_hooks[] __lsm_ro_after_init = {
 	LSM_HOOK_INIT(task_fix_setuid     , dropkin_task_fix_setuid),
 	
 	/* SM_IO */
+	LSM_HOOK_INIT(inode_alloc_security, dropkin_inode_alloc_security),
+	LSM_HOOK_INIT(inode_free_security , dropkin_inode_free_security ),
+	LSM_HOOK_INIT(inode_init_security , dropkin_inode_init_security ),
+	
 	LSM_HOOK_INIT(inode_permission  , dropkin_inode_permission  ),
 	LSM_HOOK_INIT(inode_create      , dropkin_inode_create      ),
 	LSM_HOOK_INIT(inode_mknod       , dropkin_inode_mknod       ),

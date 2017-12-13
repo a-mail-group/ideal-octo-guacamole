@@ -19,8 +19,21 @@
  *
  * NOTE THAT these constants are accidentially identical to MAY_EXEC, MAY_WRITE, MAY_READ, MAY_APPEND etc.
 **/
-#define CAP_EXEC   1
-#define CAP_WRITE  2
-#define CAP_READ   4
-#define CAP_APPEND 8
+#define CAP_EXEC   0x01
+#define CAP_WRITE  0x02
+#define CAP_READ   0x04
+#define CAP_APPEND 0x08
+
+/* This Capability is needed to delete a resource. */
+#define CAP_DELETE 0x10
+/* This Capability is needed to rename a resource. */
+#define CAP_RENAME 0x20
+/* Link a resource, thus Increasing the refcount to it. */
+#define CAP_LINK   0x40
+
+/*
+ * Special Capability that allows a process to create Files, carying the Type-ID of this capability.
+ */
+#define CAP_CREATE 0x80
+
 

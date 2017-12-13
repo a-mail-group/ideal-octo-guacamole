@@ -21,6 +21,7 @@
 #include "entry_points.h"
 #include "structs.h"
 #include "prctl_numbers.h"
+#include "various_consts.h"
 #include "macros.h"
 #include "pledge.h"
 #include "mls.h"
@@ -43,6 +44,48 @@ void dropkin_inode_free_security(struct inode *inode){
 	DROPKIN_inode_t *ins;
 	ins = inode->i_security;
 	if(ins)kfree(ins);
+}
+int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const struct qstr *qstr, const char **name, void **value, size_t *len){
+	DROPKIN_inode_t isec;
+	DROPKIN_credx_t *pt;
+	u32 tid,dtid,ntid;
+	int i;
+	
+	//"DROPKIN_TID"
+	passnocred(current->cred,-EOPNOTSUPP);
+	
+	pt = current->cred->security;
+	
+	isec.res_type_id = 0;
+	dropkin_inode_get_inode(dir, &isec);
+	
+	tid = 0;
+	dtid = cap2rti(isec.res_type_id);
+	for(i=0;i<MAX_RES_TYPE_CAPS;++i) {
+		if(!(  cap2rights(pt->res_type_caps[i])&CAP_CREATE  )) continue;
+		ntid = cap2rti(pt->res_type_caps[i]);
+		/*
+		 * Prefer newTID over oldTID if eighter:
+		 *  (a) oldTID is Zero, or
+		 *  (b) newTID is the directory's TID.
+		 */
+		if(tid==0    ) tid = ntid;
+		if(ntid==dtid) tid = ntid;
+	}
+	
+	if(!tid) return -EOPNOTSUPP;
+	
+	// TODO: isn't that already handled by dropkin_inode_setsecurity
+	if(inode->i_security)
+		((DROPKIN_inode_t*)(inode->i_security))->res_type_id = rti2cap(tid);
+	
+	if (name)
+		*name = "DROPKIN_TID";
+	if (value && len) {
+		*value = dropkin_serialize_securely(tid,len);
+		if(!*value) return -ENOMEM;
+	}
+	return 0;
 }
 
 int dropkin_inode_permission(struct inode *inode, int mask) {
@@ -117,7 +160,7 @@ int dropkin_inode_link(struct dentry *old_dentry, struct inode *dir, struct dent
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,0,-EACCES);
+	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,xMAY_LINK,-EACCES);
 	
 	return 0;
 }
@@ -132,7 +175,7 @@ int dropkin_inode_unlink(struct inode *dir, struct dentry *dentry) {
 	
 	if(dropkin_inode_get_inode(dir, &isec)) passfilepac(pt,&isec,MAY_WRITE,-EACCES);
 	
-	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,MAY_WRITE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
 	
 	return 0;
 }
@@ -164,7 +207,7 @@ int dropkin_inode_rmdir(struct inode *dir, struct dentry *dentry) {
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,MAY_WRITE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
 	
 	return 0;
 }
@@ -184,7 +227,7 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,MAY_WRITE,-EACCES);
+	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,xMAY_RENAME,-EACCES);
 	
 	return 0;
 }
@@ -236,7 +279,9 @@ int dropkin_inode_getsecurity(struct inode *inode, const char *name, void **buff
 	
 	ins = inode->i_security;
 	
-	if(dropkin_streq(name,FXA_MLS_WRITE)) {
+	if(dropkin_streq(name,FXA_TYPE_ID)) {
+		result = cap2rti(ins->res_type_id);
+	} else if(dropkin_streq(name,FXA_MLS_WRITE)) {
 		result = ins->mls.write_pr;
 	} else if(dropkin_streq(name,FXA_MLS_READ)) {
 		if(!ins->is_mls_read) return -EOPNOTSUPP;
@@ -261,7 +306,10 @@ int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void 
 	ins = inode->i_security;
 	
 	parsed = dropkin_parse_securly(value, size);
-	if(dropkin_streq(name,FXA_MLS_WRITE)) {
+	
+	if(dropkin_streq(name,FXA_TYPE_ID)) {
+		ins->res_type_id = rti2cap(parsed);
+	} else if(dropkin_streq(name,FXA_MLS_WRITE)) {
 		ins->mls.write_pr = parsed;
 	} else if(dropkin_streq(name,FXA_MLS_READ)) {
 		ins->mls.read_pr = parsed;
@@ -270,9 +318,12 @@ int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void 
 	
 	return 0;
 }
+#define SEP "\x00"
+#define SECLIST FXA_TYPE_ID
+
 int dropkin_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size) {
-	int len = sizeof(FXA_PREFIX);
-	if(buffer && (len<=buffer_size)) dropkin_mcopy(buffer,FXA_PREFIX,len);
+	int len = sizeof(SECLIST);
+	if(buffer && (len<=buffer_size)) dropkin_mcopy(buffer,SECLIST,len);
 	return len;
 }
 

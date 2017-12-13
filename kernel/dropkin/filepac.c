@@ -32,6 +32,7 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 	 */
 	if(ino->is_process) passmls(pt->subject,ino->process,true);
 	
+	/* XXX Process to file MLS is unpractical! */
 	/*
 	 * Check the write security level.
 	 */
@@ -71,10 +72,18 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 			/*
 			 * Now, lets check all access rights. One by one.
 			 */
-			if( (mask&MAY_EXEC  ) && !(rights&CAP_EXEC  ) ) return true;
-			if( (mask&MAY_READ  ) && !(rights&CAP_READ  ) ) return true;
-			if( (mask&MAY_WRITE ) && !(rights&CAP_WRITE ) ) return true;
-			if( (mask&MAY_APPEND) && !(rights&(CAP_WRITE|CAP_APPEND)) ) return true;
+			if( (mask & MAY_EXEC  ) && !(rights & CAP_EXEC  ) ) return true;
+			if( (mask & MAY_READ  ) && !(rights & CAP_READ  ) ) return true;
+			if( (mask & MAY_WRITE ) && !(rights & CAP_WRITE ) ) return true;
+			if( (mask & MAY_APPEND) && !(rights & (CAP_WRITE|CAP_APPEND)) ) return true;
+			if( (mask &xMAY_DELETE) && !(rights & CAP_DELETE) ) return true;
+			if( (mask &xMAY_LINK  ) && !(rights & CAP_LINK  ) ) return true;
+			if( (mask &xMAY_RENAME) && !(rights & CAP_RENAME) )
+				/*
+				 * If the Rename-Capability is missing, a combination of CAP_DELETE and CAP_LINK
+				 * can be used instead, as rename() can be emulated through link() and unlink() anyways.
+				 */
+				if(!( (rights & CAP_DELETE) && (rights & CAP_LINK)  )) return true;
 			
 		} else if(mask&(MAY_WRITE|MAY_APPEND)) return true;
 	}

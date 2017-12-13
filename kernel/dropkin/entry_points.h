@@ -37,6 +37,7 @@ int  dropkin_task_fix_setuid(struct cred *new, const struct cred *old,int flags)
 
 int  dropkin_inode_alloc_security(struct inode *inode);
 void dropkin_inode_free_security(struct inode *inode);
+int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const struct qstr *qstr, const char **name, void **value, size_t *len);
 
 int  dropkin_inode_permission(struct inode *inode, int mask);
 int  dropkin_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode);
@@ -58,7 +59,6 @@ int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void 
 int dropkin_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
 
 // SM_SYSV
-
 
 int  dropkin_shm_alloc_security(struct shmid_kernel *shp);
 void dropkin_shm_free_security(struct shmid_kernel *shp);
