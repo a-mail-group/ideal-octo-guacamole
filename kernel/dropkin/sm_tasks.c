@@ -130,7 +130,7 @@ int  dropkin_task_fix_setuid(struct cred *new, const struct cred *old,int flags)
 	ot = old->security;
 	*t=*ot;
 	
-	if(t->secure_flags&SECF_NO_ROOT) return E_ABORT;
+	if(t->secure_flags&SECF_NO_ROOT) return -EACCES;
 	
 	return 0;
 }
