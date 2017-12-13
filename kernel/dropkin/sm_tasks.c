@@ -157,9 +157,7 @@ int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 	DROPKIN_credx_t *t;
 	u32 pcarg, perms;
 	int i;
-	//if(!(current->cred->security)) pr_info("DAMN! - no Object!");
 	passnocred(current->cred, -ENOSYS);
-	//if(!(current->cred->security)) return -ENOSYS;
 	
 	t = current->cred->security;
 	
@@ -178,7 +176,7 @@ int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 			t->subject.iso_id=pcarg );
 		caseof(PRX_TR_SET_SECFLAG, t->secure_flags |= pcarg );
 		case   PRX_TR_SET_CAP:
-			if(t->secure_flags&&SECF_NO_NEEDCAPS) return -EACCES;
+			if(t->secure_flags & SECF_NO_NEEDCAPS) return -EACCES;
 			i = dropkin_find_or_create_cap(t,pcarg);
 			if(i<0) return -ENOMEM; /* No more space. */
 			t->res_type_caps[i] |= rights2cap(perms);

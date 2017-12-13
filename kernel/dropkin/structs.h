@@ -25,11 +25,6 @@ typedef struct DROPKIN_subject_s {
 	u32 iso_id;
 } DROPKIN_subject_t;
 
-typedef struct DROPKIN_cap_s {
-	u32 res_type_id;
-	u8  access_rights;
-} DROPKIN_cap_t;
-
 typedef u32 DROPKIN_CAP;
 #define cap2rti(x) (DROPKIN_CAP)((x)>>8)
 #define rti2cap(x) (DROPKIN_CAP)((x)<<8)
@@ -62,10 +57,6 @@ typedef struct DROPKIN_inode_s {
 	 */
 	DROPKIN_subject_t process;
 	
-	struct {
-		u32 read_pr;
-		u32 write_pr;
-	} mls;
 	/*
 	 * Resource-Type-Id
 	 *
@@ -78,6 +69,5 @@ typedef struct DROPKIN_inode_s {
 	DROPKIN_CAP res_type_id;
 	/* Insert new fields here... */
 	bool is_process;
-	bool is_mls_read;
 } DROPKIN_inode_t;
 

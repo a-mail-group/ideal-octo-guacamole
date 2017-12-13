@@ -51,7 +51,6 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 	u32 tid,dtid,ntid;
 	int i;
 	
-	//"DROPKIN_TID"
 	passnocred(current->cred,-EOPNOTSUPP);
 	
 	pt = current->cred->security;
@@ -61,6 +60,8 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 	
 	tid = 0;
 	dtid = cap2rti(isec.res_type_id);
+	
+	if(pt->secure_flags & SECF_NO_NEEDCAPS)
 	for(i=0;i<MAX_RES_TYPE_CAPS;++i) {
 		if(!(  cap2rights(pt->res_type_caps[i])&CAP_CREATE  )) continue;
 		ntid = cap2rti(pt->res_type_caps[i]);
@@ -71,20 +72,21 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 		 */
 		if(tid==0    ) tid = ntid;
 		if(ntid==dtid) tid = ntid;
-	}
+	} else tid = dtid;
 	
-	if(!tid) return -EOPNOTSUPP;
+	if (!tid) return -EOPNOTSUPP;
 	
-	// TODO: isn't that already handled by dropkin_inode_setsecurity
-	if(inode->i_security)
+	/* TODO : Isn't that already handled by dropkin_inode_setsecurity? */
+	if (inode->i_security)
 		((DROPKIN_inode_t*)(inode->i_security))->res_type_id = rti2cap(tid);
 	
 	if (name)
 		*name = "DROPKIN_TID";
 	if (value && len) {
 		*value = dropkin_serialize_securely(tid,len);
-		if(!*value) return -ENOMEM;
+		if (!(*value)) return -ENOMEM;
 	}
+	
 	return 0;
 }
 
@@ -281,11 +283,6 @@ int dropkin_inode_getsecurity(struct inode *inode, const char *name, void **buff
 	
 	if(dropkin_streq(name,FXA_TYPE_ID)) {
 		result = cap2rti(ins->res_type_id);
-	} else if(dropkin_streq(name,FXA_MLS_WRITE)) {
-		result = ins->mls.write_pr;
-	} else if(dropkin_streq(name,FXA_MLS_READ)) {
-		if(!ins->is_mls_read) return -EOPNOTSUPP;
-		result = ins->mls.read_pr;
 	} else {
 		return -EOPNOTSUPP;
 	}
@@ -309,11 +306,6 @@ int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void 
 	
 	if(dropkin_streq(name,FXA_TYPE_ID)) {
 		ins->res_type_id = rti2cap(parsed);
-	} else if(dropkin_streq(name,FXA_MLS_WRITE)) {
-		ins->mls.write_pr = parsed;
-	} else if(dropkin_streq(name,FXA_MLS_READ)) {
-		ins->mls.read_pr = parsed;
-		ins->is_mls_read = true;
 	}
 	
 	return 0;

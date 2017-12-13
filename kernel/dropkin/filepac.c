@@ -32,18 +32,6 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 	 */
 	if(ino->is_process) passmls(pt->subject,ino->process,true);
 	
-	/* XXX Process to file MLS is unpractical! */
-	/*
-	 * Check the write security level.
-	 */
-	if( (mask&(MAY_WRITE|MAY_APPEND)) && (pt->subject.prot_ring) > (ino->mls.write_pr) ) return true;
-	
-	/*
-	 * Check the read security level, if this one was offered.
-	 */
-	if(ino->is_mls_read && (mask&(MAY_READ|MAY_EXEC))
-		&& (pt->subject.prot_ring) > (ino->mls.read_pr) ) return true;
-	
 	/*
 	 * Perform Capability Based Access Control (CBAC or CAPSEC).
 	 */
