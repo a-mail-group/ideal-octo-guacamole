@@ -49,8 +49,7 @@ void dropkin_inode_free_security(struct inode *inode){
 int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const struct qstr *qstr, const char **name, void **value, size_t *len){
 	DROPKIN_inode_t isec;
 	DROPKIN_credx_t *pt;
-	u32 tid,dtid,ntid;
-	int i;
+	u32 tid,dtid;
 	
 	passnocred(current->cred,-EOPNOTSUPP);
 	
@@ -62,18 +61,10 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 	tid = 0;
 	dtid = cap2rti(isec.res_type_id);
 	
-	if(pt->secure_flags & SECF_NO_NEEDCAPS)
-	for(i=0;i<MAX_RES_TYPE_CAPS;++i) {
-		if(!(  cap2rights(pt->res_type_caps[i])&CAP_CREATE  )) continue;
-		ntid = cap2rti(pt->res_type_caps[i]);
-		/*
-		 * Prefer newTID over oldTID if eighter:
-		 *  (a) oldTID is Zero, or
-		 *  (b) newTID is the directory's TID.
-		 */
-		if(tid==0    ) tid = ntid;
-		if(ntid==dtid) tid = ntid;
-	} else tid = dtid;
+	/*
+	 * The RTI is always that of the parent directory, if any.
+	 */
+	tid = dtid;
 	
 	if (!tid) return -EOPNOTSUPP;
 	
@@ -93,7 +84,7 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 
 void dropkin_d_instantiate(struct dentry *dentry, struct inode *inode) {
 	DROPKIN_inode_t *ino;
-	char buffer[16];
+	char buffer[64];
 	int rc;
 	struct dentry *dp;
 	
@@ -113,7 +104,6 @@ void dropkin_d_instantiate(struct dentry *dentry, struct inode *inode) {
 	 */
 	rc = __vfs_getxattr(dp,inode,FXA_LOCKS,buffer,sizeof buffer);
 	if(rc>0) dropkin_lockflags_import(ino,buffer,rc);
-	
 	
 	dput(dp);
 }
@@ -141,7 +131,6 @@ void dropkin_inode_post_setxattr(struct dentry *dentry, const char *name, const 
 	else if(dropkin_streq(name,FXA_LOCKS)) {
 		dropkin_lockflags_import(ino,value,size);
 	}
-	
 }
 
 /* ------------------------------- The main permission checker. ---------------------------------- */
@@ -238,12 +227,24 @@ int dropkin_inode_link(struct dentry *old_dentry, struct inode *dir, struct dent
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,xMAY_LINK,-EACCES);
+	if(dropkin_inode_get_dentry(old_dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_LINK,-EACCES);
+		/*
+		 * p : no link() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_N,-EACCES);
+	}
 	
 	/*
 	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
 	 */
-	if(dropkin_inode_get_dentry(new_dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+		/*
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+	}
 	
 	return 0;
 }
@@ -264,7 +265,13 @@ int dropkin_inode_unlink(struct inode *dir, struct dentry *dentry) {
 		passfilelock(&isec,LOCKFLAG_U,-EACCES);
 	}
 	
-	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+		/*
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+	}
 	
 	return 0;
 }
@@ -292,7 +299,13 @@ int dropkin_inode_symlink(struct inode *dir, struct dentry *dentry, const char *
 	/*
 	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
 	 */
-	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+		/*
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+	}
 	
 	return 0;
 }
@@ -336,7 +349,13 @@ int dropkin_inode_rmdir(struct inode *dir, struct dentry *dentry) {
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+	if(dropkin_inode_get_dentry(dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+		/*
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+	}
 	
 	return 0;
 }
@@ -368,12 +387,25 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 	/*
 	 * We must also have the access rights to the file.
 	 */
-	if(dropkin_inode_get_dentry(old_dentry, &isec)) passfilepac(pt,&isec,xMAY_RENAME,-EACCES);
+	if(dropkin_inode_get_dentry(old_dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_RENAME,-EACCES);
+		/*
+		 * p : no link() or rename() on this file.
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_P|LOCKFLAG_R,-EACCES);
+	}
 	
 	/*
 	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
 	 */
-	if(dropkin_inode_get_dentry(new_dentry, &isec)) passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+	if(dropkin_inode_get_dentry(new_dentry, &isec)){
+		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
+		/*
+		 * r : no unlink()/rmdir() or rename() on this file.
+		 */
+		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+	}
 	
 	return 0;
 }

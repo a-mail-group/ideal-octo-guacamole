@@ -73,6 +73,16 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 				 */
 				if(!( (rights & CAP_DELETE) && (rights & CAP_LINK)  )) return true;
 			
+			/*
+			 * The Resource to be created shall gain the RTI of its parent directory, if any.
+			 *
+			 * At the time, we check, wether a resource may be created or not, the resource does not
+			 * exist yet, so we can't directly determine, if the subject may create it.
+			 *
+			 * Instead, we check against the parent's RTI, wether the subject might create the resource.
+			 */
+			if( (mask&(xMAY_DIR_INSERT|xMAY_DIR_REMOVE)) && !(rights & CAP_CREATE) ) return true;
+			
 		} else if(mask&( MAY_WRITE|MAY_APPEND|xMAY_DELETE|xMAY_RENAME|xMAY_LINK )) return true;
 	}
 	

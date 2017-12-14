@@ -38,6 +38,9 @@ void dropkin_lockflags_import(DROPKIN_inode_t *object,const void* buffer,size_t 
 		caseof('A', object->lockflags |= LOCKFLAG_AW );
 		caseof('x', object->lockflags |= LOCKFLAG_X  );
 		caseof('X', object->lockflags |= LOCKFLAG_XW );
+		
+		caseof('r', object->lockflags |= LOCKFLAG_R  );
+		caseof('p', object->lockflags |= LOCKFLAG_P  );
 		}
 	}
 }

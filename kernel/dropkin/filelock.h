@@ -27,6 +27,9 @@
  * A : no getattr() on this file.
  * x : no setxattr() on this file.
  * X : no getxattr() on this file.
+ *
+ * r : no unlink()/rmdir() or rename() on this file.
+ * p : no link() or rename() on this file.
 **/
 
 #define LOCKFLAG_S  0x001
@@ -39,6 +42,8 @@
 #define LOCKFLAG_AW 0x080
 #define LOCKFLAG_X  0x100
 #define LOCKFLAG_XW 0x200
+#define LOCKFLAG_R  0x400
+#define LOCKFLAG_P  0x800
 
 /*
  * Return value:
