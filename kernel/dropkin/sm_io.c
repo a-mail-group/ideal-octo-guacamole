@@ -76,7 +76,7 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 	
 	if (!tid) return -EOPNOTSUPP;
 	
-	/* TODO : Isn't that already handled by dropkin_inode_setsecurity? */
+	/* TODO : Isn't that already handled by dropkin_d_instantiate() ? */
 	if (inode->i_security)
 		((DROPKIN_inode_t*)(inode->i_security))->res_type_id = rti2cap(tid);
 	
@@ -88,6 +88,44 @@ int  dropkin_inode_init_security(struct inode *inode, struct inode *dir, const s
 	}
 	
 	return 0;
+}
+
+void dropkin_d_instantiate(struct dentry *dentry, struct inode *inode) {
+	DROPKIN_inode_t *ino;
+	char buffer[16];
+	int rc;
+	struct dentry *dp;
+	
+	passnoino(inode,);
+	ino = inode->i_security;
+	
+	dp = dget(dentry);
+	
+	/*
+	 * Load the Type-ID for the CAPSEC system.
+	 */
+	rc = __vfs_getxattr(dp,inode,FXA_TYPE_ID,buffer,sizeof buffer);
+	if(rc>0) ino->res_type_id = rti2cap(dropkin_parse_securly(buffer,rc));
+	
+	dput(dp);
+}
+
+void dropkin_inode_post_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags) {
+	DROPKIN_inode_t *ino;
+	struct inode *inode;
+	
+	inode = dentry->d_inode;
+	if(!inode)return;
+	
+	passnoino(inode,);
+	ino = inode->i_security;
+	
+	/*
+	 * Load the Type-ID for the CAPSEC system.
+	 */
+	if(dropkin_streq(name,FXA_TYPE_ID)) {
+		ino->res_type_id = rti2cap(dropkin_parse_securly(value,size));
+	}
 }
 
 int dropkin_inode_permission(struct inode *inode, int mask) {
@@ -271,51 +309,5 @@ void dropkin_task_to_inode(struct task_struct *p, struct inode *inode) {
 	pt = p->cred->security;
 	
 	dropkin_repr_as_file(pt,ins);
-}
-
-int dropkin_inode_getsecurity(struct inode *inode, const char *name, void **buffer, bool alloc) {
-	DROPKIN_inode_t *ins;
-	u32 result;
-	size_t res;
-	passnoino(inode,-EOPNOTSUPP);
-	
-	ins = inode->i_security;
-	
-	if(dropkin_streq(name,FXA_TYPE_ID)) {
-		result = cap2rti(ins->res_type_id);
-	} else {
-		return -EOPNOTSUPP;
-	}
-	
-	if(alloc) {
-		*buffer = dropkin_serialize_securely(result,&res);
-		if(!*buffer) return -ENOMEM;
-		return (int)res;
-	}
-	
-	return dropkin_decimal_length(result);
-}
-int dropkin_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags) {
-	u32 parsed;
-	DROPKIN_inode_t *ins;
-	passnoino(inode,0);
-	
-	ins = inode->i_security;
-	
-	parsed = dropkin_parse_securly(value, size);
-	
-	if(dropkin_streq(name,FXA_TYPE_ID)) {
-		ins->res_type_id = rti2cap(parsed);
-	}
-	
-	return 0;
-}
-#define SEP "\x00"
-#define SECLIST FXA_TYPE_ID
-
-int dropkin_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size) {
-	int len = sizeof(SECLIST);
-	if(buffer && (len<=buffer_size)) dropkin_mcopy(buffer,SECLIST,len);
-	return len;
 }
 

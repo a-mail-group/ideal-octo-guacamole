@@ -30,19 +30,18 @@ u32 dropkin_parse_securly(const void *value, size_t size) {
 
 void *dropkin_serialize_securely(u32 data, size_t *size) {
 	char* rbuf;
-	char buffer[17];
+	char buffer[16];
 	size_t i;
 	
-	i = 16;
-	buffer[0] = 0;
-	while(data&&i){
+	i = sizeof buffer;
+	do{
 		i--;
 		buffer[i] = (char)(data%10)+'0';
 		data /= 10;
-	}
+	}while(data&&i);
 	*size = sizeof(buffer)-i;
 	rbuf = kzalloc(*size,GFP_KERNEL);
-	if(rbuf)dropkin_mcopy(rbuf,buffer,*size);
+	if(rbuf)dropkin_mcopy(rbuf,buffer+i,*size);
 	return (void*)rbuf;
 }
 

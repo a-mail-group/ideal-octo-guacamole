@@ -73,7 +73,7 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 				 */
 				if(!( (rights & CAP_DELETE) && (rights & CAP_LINK)  )) return true;
 			
-		} else if(mask&(MAY_WRITE|MAY_APPEND)) return true;
+		} else if(mask&( MAY_WRITE|MAY_APPEND|xMAY_DELETE|xMAY_RENAME|xMAY_LINK )) return true;
 	}
 	
 	return false;

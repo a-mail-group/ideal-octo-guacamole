@@ -165,23 +165,62 @@ int dropkin_task_prctl(int option, unsigned long arg2, unsigned long arg3, unsig
 	perms = (u32)arg3;
 	
 	switch(option){
+		/*
+		 * Pledge.
+		 */
 		caseof(PRX_TR_PLEDGE     , t->pledge |= ~pcarg );
 		caseof(PRX_TR_PLEDGE_NOT , t->pledge |=  pcarg );
+		
+		/*
+		 * This command is for testing purposes, and can also be used for security critical abort() function.
+		 */
 		caseof(PRX_TR_ABORT      , return E_ABORT       );
+		
+		/*
+		 * Set the MLS ring.
+		 */
 		caseof(PRX_TR_MLS_RING   ,
 			if(t->subject.prot_ring>pcarg) return -EACCES;
 			t->subject.prot_ring=pcarg );
+		
+		/*
+		 * Set the Isolation-ID.
+		 */
 		caseof(PRX_TR_ISO_ID     ,
 			if(t->subject.iso_id) return -EACCES;
 			t->subject.iso_id=pcarg );
+		
+		/*
+		 * Set secureflags.
+		 */
 		caseof(PRX_TR_SET_SECFLAG, t->secure_flags |= pcarg );
 		case   PRX_TR_SET_CAP:
 			if(t->secure_flags & SECF_NO_NEEDCAPS) return -EACCES;
+			
+			/*
+			 * No permissions to be set == no effect on the Capability table.
+			 */
+			if(perms==0) return 0;
+			
+			/*
+			 * The Type-ID must not be Zero.
+			 */
+			if(pcarg==0) return -EINVAL;
+			
 			i = dropkin_find_or_create_cap(t,pcarg);
-			if(i<0) return -ENOMEM; /* No more space. */
+			
+			/*
+			 * If there is no free Slot in the Capability table, then fail.
+			 */
+			if(i<0) return -ENOMEM;
+			
+			/*
+			 * Set the capability bits.
+			 */
 			t->res_type_caps[i] |= rights2cap(perms);
 		break;
+		default: return -ENOSYS;
 	}
-	return -ENOSYS;
+	return 0;
 }
 
