@@ -4,7 +4,7 @@
 
 obj-$(CONFIG_SECURITY_DROPKIN) := dropkin.o
 
-dropkin-y := dropkin_lsm.o pledge.o mls.o filepac.o secureflag.o
+dropkin-y := dropkin_lsm.o pledge.o mls.o filepac.o filelock.o secureflag.o
 
 # Util
 dropkin-y += util_file.o parsenum.o

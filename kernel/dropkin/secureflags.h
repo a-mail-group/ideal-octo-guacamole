@@ -16,12 +16,18 @@ bool dropkin_check_secureflags(u32 flags);
 
 #define passsecflags(flags,x) if(dropkin_check_secureflags(flags)) return x
 
-#define SECF_NO_ROOT      0x00000001
-#define SECF_NO_MOUNT     0x00000002
-#define SECF_NO_BLK_READ  0x00000004
-#define SECF_NO_BLK_WRITE 0x00000008
-#define SECF_NO_CHR_READ  0x00000010
-#define SECF_NO_CHR_WRITE 0x00000020
-#define SECF_NO_CHANGENET 0x00000040
-#define SECF_NO_NEEDCAPS  0x00000080
+#define SECF_NO_ROOT       0x00000001
+#define SECF_NO_MOUNT      0x00000002
+#define SECF_NO_BLK_READ   0x00000004
+#define SECF_NO_BLK_WRITE  0x00000008
+#define SECF_NO_CHR_READ   0x00000010
+#define SECF_NO_CHR_WRITE  0x00000020
+#define SECF_NO_CHANGENET  0x00000040
+#define SECF_NEEDCAPS      0x00000080
+#define SECF_RESPECT_LOCKS 0x00000100
+
+/*
+ * Ill-named constants.
+ */
+#define SECF_NO_NEEDCAPS   SECF_NEEDCAPS
 

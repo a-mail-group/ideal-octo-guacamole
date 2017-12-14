@@ -67,6 +67,12 @@ typedef struct DROPKIN_inode_s {
 	 * The rights vector, cap2rights( res_type_id ) will be ignored, and should be ZERO.
 	 */
 	DROPKIN_CAP res_type_id;
+	/*
+	 * Locks for Files and Directories (not in terms of synchronization).
+	 *
+	 * These flags determine, what a (deprivileged) process can do with this file, and what not.
+	 */
+	u32 lockflags;
 	/* Insert new fields here... */
 	bool is_process;
 } DROPKIN_inode_t;

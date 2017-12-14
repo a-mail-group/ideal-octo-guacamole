@@ -55,6 +55,10 @@ int  dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, stru
 int  dropkin_inode_setattr(struct dentry *dentry, struct iattr *attr);
 int  dropkin_inode_getattr(const struct path *path);
 void dropkin_task_to_inode(struct task_struct *p, struct inode *inode);
+int  dropkin_inode_setxattr(struct dentry *dentry, const char *name,const void *value, size_t size, int flags);
+int  dropkin_inode_removexattr(struct dentry *dentry, const char *name);
+int  dropkin_inode_getxattr(struct dentry *dentry, const char *name);
+int  dropkin_inode_listxattr(struct dentry *dentry);
 
 
 // SM_SYSV

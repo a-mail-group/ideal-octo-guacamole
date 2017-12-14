@@ -19,6 +19,16 @@
 #define xMAY_LINK   0x00040000
 
 /*
+ * Insert into directory.
+ */
+#define xMAY_DIR_INSERT 0x00080000
+
+/*
+ * Remove from directory.
+ */
+#define xMAY_DIR_REMOVE 0x00100000
+
+/*
  * Return value:
  *    False: Access granted.
  *    True:  Access denied.
