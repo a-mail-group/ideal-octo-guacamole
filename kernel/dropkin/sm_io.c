@@ -108,6 +108,9 @@ void dropkin_d_instantiate(struct dentry *dentry, struct inode *inode) {
 	rc = __vfs_getxattr(dp,inode,FXA_TYPE_ID,buffer,sizeof buffer);
 	if(rc>0) ino->res_type_id = rti2cap(dropkin_parse_securly(buffer,rc));
 	
+	/*
+	 * Load the File-Padlocks.
+	 */
 	rc = __vfs_getxattr(dp,inode,FXA_LOCKS,buffer,sizeof buffer);
 	if(rc>0) dropkin_lockflags_import(ino,buffer,rc);
 	
@@ -130,7 +133,12 @@ void dropkin_inode_post_setxattr(struct dentry *dentry, const char *name, const 
 	 */
 	if(dropkin_streq(name,FXA_TYPE_ID)) {
 		ino->res_type_id = rti2cap(dropkin_parse_securly(value,size));
-	} else if(dropkin_streq(name,FXA_LOCKS)) {
+	}
+	
+	/*
+	 * Load the File-Padlocks.
+	 */
+	else if(dropkin_streq(name,FXA_LOCKS)) {
 		dropkin_lockflags_import(ino,value,size);
 	}
 	
