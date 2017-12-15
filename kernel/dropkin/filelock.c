@@ -15,11 +15,17 @@
 #include "secureflags.h"
 #include "macros.h"
 
-bool dropkin_check_lockflags(DROPKIN_inode_t *object, int flags) {
+bool dropkin_check_lockflags(DROPKIN_credx_t *pt, DROPKIN_inode_t *object, int flags) {
+	#if 0
 	if(dropkin_check_secureflags(SECF_RESPECT_LOCKS)) {
-		if(object->lockflags&flags) return true;
+		return bcast(object->lockflags&flags);
 	}
 	return false;
+	#else
+	return
+		bcast((pt->secure_flags)&SECF_RESPECT_LOCKS) &&
+		bcast((object->lockflags)&flags);
+	#endif
 }
 
 void dropkin_lockflags_import(DROPKIN_inode_t *object,const void* buffer,size_t len){

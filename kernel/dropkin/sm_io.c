@@ -27,10 +27,17 @@
 #include "mls.h"
 #include "util_file.h"
 #include "filepac.h"
-#include "filelock.h"
+
 #include "parsenum.h"
 #include "util_mem.h"
 #include "secureflags.h"
+
+/*
+ * Include this file AFTER "secureflags.h" and "macros.h".
+ *
+ * This is done in order to enable inlining.
+ */
+#include "filelock.h"
 
 //#define REQ_CPATH { passnocred(current->cred,0); passpledge(PLEDGE_CPATH, E_ABORT); return 0; }
 
@@ -166,6 +173,21 @@ int dropkin_inode_permission(struct inode *inode, int mask) {
 
 /* ---------------- FILE/DIR/ETC CREATE/DELETE/RENAME/LINK ------------------- */
 
+/* Helper function */
+#define get_type_flags(inode) get_type_flags_raw(inode->i_mode)
+
+/* Helper function */
+static inline int get_type_flags_raw(umode_t mode){
+	switch(((mode)>>12)&15) {
+	case DT_UNKNOWN: return 0;
+	case DT_LNK: return LOCKFLAG_S;
+	case DT_REG: return LOCKFLAG_F;
+	case DT_DIR: return LOCKFLAG_D;
+	default: return LOCKFLAG_N;
+	}
+	return 0;
+}
+
 int dropkin_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode) {
 	DROPKIN_inode_t isec;
 	DROPKIN_credx_t *pt;
@@ -180,7 +202,7 @@ int dropkin_inode_create(struct inode *dir, struct dentry *dentry, umode_t mode)
 		/*
 		 * f : no create() in this dir (or, creating files not allowed).
 		 */
-		passfilelock(&isec,LOCKFLAG_F,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_F,-EACCES);
 	}
 	
 	return 0;
@@ -200,7 +222,7 @@ int dropkin_inode_mknod (struct inode *dir, struct dentry *dentry, umode_t mode,
 		/*
 		 * n : no mknod() in this dir (also mkfifo() or AF_UNIX sockets).
 		 */
-		passfilelock(&isec,LOCKFLAG_N,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_N,-EACCES);
 	}
 	
 	return 0;
@@ -220,8 +242,10 @@ int dropkin_inode_link(struct dentry *old_dentry, struct inode *dir, struct dent
 		passfilepac(pt,&isec,MAY_WRITE|xMAY_DIR_INSERT,-EACCES);
 		/*
 		 * l : no link() or rename() into this dir.
+		 *
+		 * also, put the 's', 'f', 'd' or 'n' flag in, depending on file type.
 		 */
-		passfilelock(&isec,LOCKFLAG_L,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_L | get_type_flags(old_dentry->d_inode)  ,-EACCES);
 	}
 	
 	/*
@@ -232,18 +256,18 @@ int dropkin_inode_link(struct dentry *old_dentry, struct inode *dir, struct dent
 		/*
 		 * p : no link() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_N,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_N,-EACCES);
 	}
 	
 	/*
 	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
 	 */
-	if(dropkin_inode_get_dentry(dentry, &isec)){
+	if(dropkin_inode_get_dentry(new_dentry, &isec)){
 		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
 		/*
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_R,-EACCES);
 	}
 	
 	return 0;
@@ -262,7 +286,7 @@ int dropkin_inode_unlink(struct inode *dir, struct dentry *dentry) {
 		/*
 		 * u : no unlink()/rmdir() in or rename() out of this dir.
 		 */
-		passfilelock(&isec,LOCKFLAG_U,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_U,-EACCES);
 	}
 	
 	if(dropkin_inode_get_dentry(dentry, &isec)){
@@ -270,7 +294,7 @@ int dropkin_inode_unlink(struct inode *dir, struct dentry *dentry) {
 		/*
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_R,-EACCES);
 	}
 	
 	return 0;
@@ -293,7 +317,7 @@ int dropkin_inode_symlink(struct inode *dir, struct dentry *dentry, const char *
 		/*
 		 * s : no symlink() in this dir.
 		 */
-		passfilelock(&isec,LOCKFLAG_S,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_S,-EACCES);
 	}
 	
 	/*
@@ -304,7 +328,7 @@ int dropkin_inode_symlink(struct inode *dir, struct dentry *dentry, const char *
 		/*
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_R,-EACCES);
 	}
 	
 	return 0;
@@ -324,7 +348,7 @@ int dropkin_inode_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode) 
 		/*
 		 * d : no mkdir() in this dir.
 		 */
-		passfilelock(&isec,LOCKFLAG_D,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_D,-EACCES);
 	}
 	
 	return 0;
@@ -343,7 +367,7 @@ int dropkin_inode_rmdir(struct inode *dir, struct dentry *dentry) {
 		/*
 		 * u : no unlink()/rmdir() in or rename() out of this dir.
 		 */
-		passfilelock(&isec,LOCKFLAG_U,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_U,-EACCES);
 	}
 	
 	/*
@@ -354,7 +378,7 @@ int dropkin_inode_rmdir(struct inode *dir, struct dentry *dentry) {
 		/*
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_R,-EACCES);
 	}
 	
 	return 0;
@@ -373,15 +397,17 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 		/*
 		 * u : no unlink()/rmdir() in or rename() out of this dir.
 		 */
-		passfilelock(&isec,LOCKFLAG_U,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_U,-EACCES);
 	}
 	
 	if(dropkin_inode_get_inode(new_dir, &isec)){
 		passfilepac(pt,&isec,MAY_WRITE|xMAY_DIR_INSERT,-EACCES);
 		/*
 		 * l : no link() or rename() into this dir.
+		 *
+		 * also, put the 's', 'f', 'd' or 'n' flag in, depending on file type.
 		 */
-		passfilelock(&isec,LOCKFLAG_L,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_L | get_type_flags(old_dentry->d_inode),-EACCES);
 	}
 	
 	/*
@@ -393,7 +419,7 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 		 * p : no link() or rename() on this file.
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_P|LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_P|LOCKFLAG_R,-EACCES);
 	}
 	
 	/*
@@ -404,7 +430,7 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 		/*
 		 * r : no unlink()/rmdir() or rename() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_R,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_R,-EACCES);
 	}
 	
 	return 0;
@@ -441,7 +467,7 @@ int dropkin_inode_setattr(struct dentry *dentry, struct iattr *attr) {
 		/*
 		 * a : no setattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_A,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_A,-EACCES);
 	}
 	
 	return 0;
@@ -460,7 +486,7 @@ int dropkin_inode_getattr(const struct path *path) {
 		/*
 		 * A : no getattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_AW,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_AW,-EACCES);
 	}
 	
 	return 0;
@@ -483,7 +509,7 @@ int  dropkin_inode_setxattr(struct dentry *dentry, const char *name,const void *
 		/*
 		 * x : no setxattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_X,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_X,-EACCES);
 	}
 	
 	return 0;
@@ -502,7 +528,7 @@ int  dropkin_inode_removexattr(struct dentry *dentry, const char *name) {
 		/*
 		 * x : no setxattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_X,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_X,-EACCES);
 	}
 	
 	return 0;
@@ -521,7 +547,7 @@ int  dropkin_inode_getxattr(struct dentry *dentry, const char *name) {
 		/*
 		 * X : no getxattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_XW,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_XW,-EACCES);
 	}
 	
 	return 0;
@@ -540,7 +566,7 @@ int  dropkin_inode_listxattr(struct dentry *dentry) {
 		/*
 		 * X : no getxattr() on this file.
 		 */
-		passfilelock(&isec,LOCKFLAG_XW,-EACCES);
+		passfilelock(pt,&isec,LOCKFLAG_XW,-EACCES);
 	}
 	
 	return 0;

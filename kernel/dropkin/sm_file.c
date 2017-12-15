@@ -39,6 +39,10 @@ int dropkin_file_fcntl(struct file *file, unsigned int cmd, unsigned long arg) {
 }
 
 static bool dropkin_x_ioctl_alter_network(struct file *file, unsigned int cmd, unsigned long arg) {
+	/*
+	 * If Networking support is disabled, this could possibly cause an error.
+	 */
+#ifdef CONFIG_NET
 	int err = 0;
 	if(!sock_from_file(file,&err))return false; // No DENY.
 	switch(cmd) {
@@ -117,6 +121,7 @@ static bool dropkin_x_ioctl_alter_network(struct file *file, unsigned int cmd, u
 	
 		return true;
 	}
+#endif
 	return false;
 }
 

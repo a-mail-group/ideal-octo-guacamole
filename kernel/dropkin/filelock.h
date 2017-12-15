@@ -13,6 +13,8 @@
  *
 **/
 #include "structs.h"
+//#include "secureflags.h"
+//#include "macros.h"
 
 /*
  * s : no symlink() in this dir.
@@ -30,6 +32,8 @@
  *
  * r : no unlink()/rmdir() or rename() on this file.
  * p : no link() or rename() on this file.
+ *
+ * h : Character- or Block-Devices may not be created in this dir.
 **/
 
 #define LOCKFLAG_S  0x001
@@ -50,9 +54,31 @@
  *    False: Access granted.
  *    True:  Access denied.
  */
-bool dropkin_check_lockflags(DROPKIN_inode_t *object, int flags);
+bool dropkin_check_lockflags(DROPKIN_credx_t *pt, DROPKIN_inode_t *object, int flags);
 
-#define passfilelock(ino,flags,x) if(dropkin_check_lockflags(ino,flags)) return x
+#if defined(bcast) && defined(SECF_RESPECT_LOCKS)
+
+/*
+ * A Faster version.
+ *
+ * Return value:
+ *    False: Access granted.
+ *    True:  Access denied.
+ */
+static inline bool dropkin_check_lockflags_inl(DROPKIN_credx_t *pt, DROPKIN_inode_t *object, int flags) {
+	return
+		bcast((pt->secure_flags)&SECF_RESPECT_LOCKS) &&
+		bcast((object->lockflags)&flags);
+}
+
+#define passfilelock(pt,ino,flags,x) if(dropkin_check_lockflags_inl(pt,ino,flags)) return x
+
+#else
+
+#define passfilelock(pt,ino,flags,x) if(dropkin_check_lockflags(pt,ino,flags)) return x
+
+#endif
+
 
 void dropkin_lockflags_import(DROPKIN_inode_t *object,const void* buffer,size_t len);
 
