@@ -95,21 +95,21 @@ static struct security_hook_list dropkin_hooks[] __lsm_ro_after_init = {
 	LSM_HOOK_INIT(socket_getsockopt       , dropkin_socket_getsockopt       ),
 	LSM_HOOK_INIT(socket_setsockopt       , dropkin_socket_setsockopt       ),
 	LSM_HOOK_INIT(socket_setsockopt       , dropkin_socket_setsockopt       ),
-	LSM_HOOK_INIT(socket_shutdown         , dropkin_socket_shutdown         ),
 	LSM_HOOK_INIT(socket_sock_rcv_skb     , dropkin_socket_sock_rcv_skb     ),
-	LSM_HOOK_INIT(socket_getpeersec_stream, dropkin_socket_getpeersec_stream),
-	LSM_HOOK_INIT(socket_getpeersec_dgram , dropkin_socket_getpeersec_dgram ),
+	LSM_HOOK_INIT(sk_alloc_security       , dropkin_sk_alloc_security       ),
+	LSM_HOOK_INIT(sk_free_security        , dropkin_sk_free_security        ),
+	LSM_HOOK_INIT(sk_clone_security       , dropkin_sk_clone_security       ),
 #endif
 	
 	/* SM_FILE */
-	LSM_HOOK_INIT(file_lock         , dropkin_file_lock         ),
-	LSM_HOOK_INIT(file_fcntl        , dropkin_file_fcntl        ),
-	LSM_HOOK_INIT(file_ioctl        , dropkin_file_ioctl        ),
-	LSM_HOOK_INIT(file_receive      , dropkin_file_receive      ),
-	LSM_HOOK_INIT(sb_statfs         , dropkin_sb_statfs         ),
-	LSM_HOOK_INIT(sb_mount          , dropkin_sb_mount          ),
-	LSM_HOOK_INIT(sb_umount         , dropkin_sb_umount         ),
-	LSM_HOOK_INIT(sb_pivotroot      , dropkin_sb_pivotroot      ),
+	LSM_HOOK_INIT(file_lock          , dropkin_file_lock          ),
+	LSM_HOOK_INIT(file_fcntl         , dropkin_file_fcntl         ),
+	LSM_HOOK_INIT(file_ioctl         , dropkin_file_ioctl         ),
+	LSM_HOOK_INIT(file_receive       , dropkin_file_receive       ),
+	LSM_HOOK_INIT(sb_statfs          , dropkin_sb_statfs          ),
+	LSM_HOOK_INIT(sb_mount           , dropkin_sb_mount           ),
+	LSM_HOOK_INIT(sb_umount          , dropkin_sb_umount          ),
+	LSM_HOOK_INIT(sb_pivotroot       , dropkin_sb_pivotroot       ),
 	
 };
 

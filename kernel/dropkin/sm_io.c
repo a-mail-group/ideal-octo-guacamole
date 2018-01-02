@@ -260,7 +260,7 @@ int dropkin_inode_link(struct dentry *old_dentry, struct inode *dir, struct dent
 	}
 	
 	/*
-	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
+	 * Possibly, there is a file already, to be replaced. Check if we might replace it.
 	 */
 	if(dropkin_inode_get_dentry(new_dentry, &isec)){
 		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
@@ -321,7 +321,7 @@ int dropkin_inode_symlink(struct inode *dir, struct dentry *dentry, const char *
 	}
 	
 	/*
-	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
+	 * Possibly, there is a file already, to be replaced. Check if we might replace it.
 	 */
 	if(dropkin_inode_get_dentry(dentry, &isec)){
 		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);
@@ -423,7 +423,7 @@ int dropkin_inode_rename(struct inode *old_dir, struct dentry *old_dentry, struc
 	}
 	
 	/*
-	 * Possibly, ther is a file already, to be replaced. Check if we might replace it.
+	 * Possibly, there is a file already, to be replaced. Check if we might replace it.
 	 */
 	if(dropkin_inode_get_dentry(new_dentry, &isec)){
 		passfilepac(pt,&isec,xMAY_DELETE,-EACCES);

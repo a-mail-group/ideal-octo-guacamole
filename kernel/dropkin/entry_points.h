@@ -89,33 +89,33 @@ int  dropkin_msg_queue_msgrcv(struct msg_queue *msq, struct msg_msg *msg, struct
 int dropkin_unix_stream_connect(struct sock *sock, struct sock *other, struct sock *newsk);
 int dropkin_unix_may_send(struct socket *sock, struct socket *other);
 
-int dropkin_socket_create(int family, int type, int protocol, int kern);
-int dropkin_socket_post_create(struct socket *sock, int family, int type, int protocol, int kern);
-int dropkin_socket_bind(struct socket *sock, struct sockaddr *address, int addrlen);
-int dropkin_socket_connect(struct socket *sock, struct sockaddr *address, int addrlen);
-int dropkin_socket_listen(struct socket *sock, int backlog);
-int dropkin_socket_accept(struct socket *sock, struct socket *newsock);
-int dropkin_socket_sendmsg(struct socket *sock, struct msghdr *msg, int size);
-int dropkin_socket_recvmsg(struct socket *sock, struct msghdr *msg, int size, int flags);
-int dropkin_socket_getsockname(struct socket *sock);
-int dropkin_socket_getpeername(struct socket *sock);
-int dropkin_socket_getsockopt(struct socket *sock, int level, int optname);
-int dropkin_socket_setsockopt(struct socket *sock, int level, int optname);
-int dropkin_socket_shutdown(struct socket *sock, int how);
-int dropkin_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb);
-int dropkin_socket_getpeersec_stream(struct socket *sock, char __user *optval, int __user *optlen, unsigned len);
-int dropkin_socket_getpeersec_dgram(struct socket *sock, struct sk_buff *skb, u32 *secid);
+int  dropkin_socket_create(int family, int type, int protocol, int kern);
+int  dropkin_socket_post_create(struct socket *sock, int family, int type, int protocol, int kern);
+int  dropkin_socket_bind(struct socket *sock, struct sockaddr *address, int addrlen);
+int  dropkin_socket_connect(struct socket *sock, struct sockaddr *address, int addrlen);
+int  dropkin_socket_listen(struct socket *sock, int backlog);
+int  dropkin_socket_accept(struct socket *sock, struct socket *newsock);
+int  dropkin_socket_sendmsg(struct socket *sock, struct msghdr *msg, int size);
+int  dropkin_socket_recvmsg(struct socket *sock, struct msghdr *msg, int size, int flags);
+int  dropkin_socket_getsockname(struct socket *sock);
+int  dropkin_socket_getpeername(struct socket *sock);
+int  dropkin_socket_getsockopt(struct socket *sock, int level, int optname);
+int  dropkin_socket_setsockopt(struct socket *sock, int level, int optname);
+int  dropkin_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb);
+int  dropkin_sk_alloc_security(struct sock *sk, int family, gfp_t priority);
+void dropkin_sk_free_security(struct sock *sk);
+void dropkin_sk_clone_security(const struct sock *sk, struct sock *newsk);
 #endif
 
 // SM_FILE
 
-int dropkin_file_lock(struct file *file, unsigned int cmd);
-int dropkin_file_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
-int dropkin_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-int dropkin_file_receive(struct file *file);
-int dropkin_sb_statfs(struct dentry *dentry);
-int dropkin_sb_mount(const char *dev_name, const struct path *path, const char *type, unsigned long flags, void *data);
-int dropkin_sb_umount(struct vfsmount *mnt, int flags);
-int dropkin_sb_pivotroot(const struct path *old_path, const struct path *new_path);
+int  dropkin_file_lock(struct file *file, unsigned int cmd);
+int  dropkin_file_fcntl(struct file *file, unsigned int cmd, unsigned long arg);
+int  dropkin_file_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+int  dropkin_file_receive(struct file *file);
+int  dropkin_sb_statfs(struct dentry *dentry);
+int  dropkin_sb_mount(const char *dev_name, const struct path *path, const char *type, unsigned long flags, void *data);
+int  dropkin_sb_umount(struct vfsmount *mnt, int flags);
+int  dropkin_sb_pivotroot(const struct path *old_path, const struct path *new_path);
 
 //

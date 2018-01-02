@@ -26,6 +26,8 @@
 //#include "mls.h"
 #include "secureflags.h"
 
+#define IGNORE { return 0; }
+
 int dropkin_file_lock(struct file *file, unsigned int cmd) {
 	passnocred(current->cred,0);
 	passpledge(PLEDGE_FLOCK, E_ABORT);

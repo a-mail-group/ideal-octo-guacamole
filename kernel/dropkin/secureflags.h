@@ -25,6 +25,8 @@ bool dropkin_check_secureflags(u32 flags);
 #define SECF_NO_CHANGENET  0x00000040
 #define SECF_NEEDCAPS      0x00000080
 #define SECF_RESPECT_LOCKS 0x00000100
+#define SECF_RESPECT_SKMLS 0x00000200
+#define SECF_NO_NETWORKING 0x00000400
 
 /*
  * Ill-named constants.

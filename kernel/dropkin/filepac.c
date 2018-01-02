@@ -35,7 +35,7 @@ bool dropkin_check_filepac(DROPKIN_credx_t *pt, DROPKIN_inode_t *ino, int mask) 
 	/*
 	 * Perform Capability Based Access Control (CBAC or CAPSEC).
 	 */
-	if(pt->secure_flags&SECF_NO_NEEDCAPS) {
+	if(pt->secure_flags&SECF_NEEDCAPS) {
 		
 		f_res_type_id = cap2rti(ino->res_type_id);
 		

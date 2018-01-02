@@ -25,3 +25,10 @@
 #define passnosma(sma,x) if(!(sma)->sem_perm.security) return x
 #define passnomsq(msq,x) if(!(msq)->q_perm.security  ) return x
 
+// FILE
+#define passnofile(file,x) if(!(file)->f_security) return x
+
+// Sockets
+
+#define passnosock(sock,x) if(!(sock)->sk_security) return x
+

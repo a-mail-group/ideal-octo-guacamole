@@ -77,3 +77,8 @@ typedef struct DROPKIN_inode_s {
 	bool is_process;
 } DROPKIN_inode_t;
 
+typedef struct DROPKIN_socket_s {
+	DROPKIN_subject_t owner;
+	u32 secure_flags;
+} DROPKIN_socket_t;
+
