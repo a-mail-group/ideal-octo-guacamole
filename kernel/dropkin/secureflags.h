@@ -1,6 +1,6 @@
 #pragma once
 /*
- *  Copyright (C) 2017 Simon Schmidt
+ *  Copyright (C) 2017-2018 Simon Schmidt
  *
  *	This code is public domain; you can redistribute it and/or modify
  *	it under the terms of the Creative Commons "CC0" license. See LICENSE.CC0
@@ -27,6 +27,7 @@ bool dropkin_check_secureflags(u32 flags);
 #define SECF_RESPECT_LOCKS 0x00000100
 #define SECF_RESPECT_SKMLS 0x00000200
 #define SECF_NO_NETWORKING 0x00000400
+#define SECF_NO_SOCKET_IO  0x00000800
 
 /*
  * Ill-named constants.

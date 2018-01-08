@@ -1,6 +1,6 @@
 #pragma once
 /*
- *  Copyright (C) 2017 Simon Schmidt
+ *  Copyright (C) 2017-2018 Simon Schmidt
  *
  *	This code is public domain; you can redistribute it and/or modify
  *	it under the terms of the Creative Commons "CC0" license. See LICENSE.CC0

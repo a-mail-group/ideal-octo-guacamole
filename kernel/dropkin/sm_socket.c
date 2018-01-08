@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2017 Simon Schmidt
+ *  Copyright (C) 2017-2018 Simon Schmidt
  *
  *	This code is public domain; you can redistribute it and/or modify
  *	it under the terms of the Creative Commons "CC0" license. See LICENSE.CC0
@@ -146,35 +146,63 @@ int dropkin_socket_bind(struct socket *sock, struct sockaddr *address, int addrl
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
+
 int dropkin_socket_connect(struct socket *sock, struct sockaddr *address, int addrlen) {
 	passnocred(current->cred,0);
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
+
 int dropkin_socket_listen(struct socket *sock, int backlog) {
 	passnocred(current->cred,0);
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
+
 int dropkin_socket_accept(struct socket *sock, struct socket *newsock) {
 	passnocred(current->cred,0);
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
-int dropkin_socket_sendmsg(struct socket *sock, struct msghdr *msg, int size) IGNORE
-int dropkin_socket_recvmsg(struct socket *sock, struct msghdr *msg, int size, int flags) IGNORE
+
+int dropkin_socket_sendmsg(struct socket *sock, struct msghdr *msg, int size) {
+	passnocred(current->cred,0);
+	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
+	return 0;
+}
+
+int dropkin_socket_recvmsg(struct socket *sock, struct msghdr *msg, int size, int flags) {
+	passnocred(current->cred,0);
+	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
+	return 0;
+}
+
 int dropkin_socket_getsockname(struct socket *sock) {
 	passnocred(current->cred,0);
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
+	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
 	
 	return 0;
 }
@@ -183,6 +211,8 @@ int dropkin_socket_getpeername(struct socket *sock) {
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
 int dropkin_socket_getsockopt(struct socket *sock, int level, int optname) {
@@ -190,12 +220,16 @@ int dropkin_socket_getsockopt(struct socket *sock, int level, int optname) {
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
 	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
+	
 	return 0;
 }
 int dropkin_socket_setsockopt(struct socket *sock, int level, int optname) {
 	passnocred(current->cred,0);
 	
 	passpledge(PLEDGE_SOCKETS, E_ABORT);
+	
+	passsecflags(SECF_NO_SOCKET_IO, -EACCES);
 	
 	return 0;
 }
@@ -206,7 +240,7 @@ int dropkin_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb) {
 	ski = sk->sk_security;
 	
 	/* No networking is supported for this socket. */
-	if(ski->secure_flags&SECF_NO_NETWORKING) return -EACCES;
+	if((ski->secure_flags) & SECF_NO_NETWORKING) return -EACCES;
 	
 	return 0;
 }
