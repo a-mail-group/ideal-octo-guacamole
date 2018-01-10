@@ -32,3 +32,5 @@
 
 #define passnosock(sock,x) if(!(sock)->sk_security) return x
 
+#define pass0(it,x) if(!(it)) return x
+

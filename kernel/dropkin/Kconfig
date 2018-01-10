@@ -14,3 +14,12 @@ config SECURITY_DROPKIN_DEVEL
 	help
 	  Seriously, you MUST NOT enable that! It causes kernel panics!!!
 
+config SECURITY_DROPKIN_NETFILTER
+	bool "Dropkin's Netfilter extension."
+	depends on SECURITY
+	depends on SECURITY_DROPKIN
+	depends on NETFILTER
+	default y
+	help
+	  This enables dropkin's netfilter hook. This causes Dropkin to enforce
+	  the SECF_NO_NETWORKING secureflag on egress-packets as well.
